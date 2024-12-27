@@ -19,9 +19,11 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
+          echo "Setting up SSH private key..."
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
           mkdir -p ~/.ssh
+          echo "Adding GCP VM to known hosts..."
           ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
       # Step 3: Deploy application on GCP VM
@@ -29,7 +31,8 @@ jobs:
         env:
           GCP_VM_IP: ${{ secrets.GCP_VM_IP }}
         run: |
-          ssh -i private_key.pem user@$GCP_VM_IP <<EOF
+          echo "Starting deployment to GCP VM..."
+          ssh -o StrictHostKeyChecking=no -i private_key.pem user@$GCP_VM_IP <<EOF
           set -e
 
           echo "Navigating to application directory..."
@@ -44,3 +47,9 @@ jobs:
 
           echo "Deployment complete!"
           EOF
+
+      # Step 4: Clean up private key
+      - name: Clean up
+        run: |
+          echo "Removing temporary SSH private key..."
+          rm -f private_key.pem
