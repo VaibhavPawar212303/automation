@@ -1,54 +1,24 @@
-name: Deploy to GCP VM
+name: Connect to GCP VM
 
 on:
   push:
     branches:
-      - main  # Trigger the workflow when changes are pushed to the main branch
+      - main
 
 jobs:
-  deploy:
+  connect-vm:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      # Step 2: Set up Google Cloud SDK
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
+    - name: Set up SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
 
-      # Step 3: Authenticate and set the active account
-      - name: Authenticate and configure Google Cloud
-        run: |
-          echo "Authenticating with the service account..."
-          echo "${{ secrets.GCP_SA_KEY }}" > gcp-key.json
-          gcloud auth activate-service-account --key-file=gcp-key.json
-          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-          gcloud config set account ${{ secrets.GCP_SA_EMAIL }}
-
-      # Step 4: Deploy to GCP VM
-      - name: Deploy to GCP VM
-        run: |
-          echo "Connecting to GCP VM and deploying the application..."
-          gcloud compute ssh pawarvaibhav.vppv@instance-20241228-073715 \
-            --zone=us-central1-a \
-            --project=${{ secrets.GCP_PROJECT_ID }} \
-            --tunnel-through-iap -- 'bash -s' <<EOF
-          set -e
-          echo "Navigating to application directory..."
-          cd /path/to/your/repo || { echo "Directory does not exist. Exiting."; exit 1; }
-
-          echo "Pulling latest changes from Git..."
-          git pull origin main || { echo "Git pull failed. Exiting."; exit 1; }
-
-          echo "Rebuilding Docker containers..."
-          docker-compose down || { echo "Failed to stop Docker containers."; }
-          docker-compose up -d --build || { echo "Docker rebuild failed. Exiting."; exit 1; }
-
-          echo "Deployment complete!"
-          EOF
+    - name: Test SSH Connection
+      run: |
+        ssh -o StrictHostKeyChecking=no USERNAME@VM_IP_ADDRESS "echo 'Connected to VM successfully!'"
