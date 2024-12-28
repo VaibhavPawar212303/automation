@@ -16,15 +16,14 @@ jobs:
     - name: Set up SSH Key
       run: |
         mkdir -p ~/.ssh
+        # Add the private key from secrets into the ~/.ssh/id_ed25519 file
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-        
-        # Start the SSH agent
+
+        # Start the SSH agent and add the private key
         eval $(ssh-agent -s)
-        
-        # Add the private key to the agent
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" | ssh-add - <<< ${{ secrets.SSH_PRIVATE_KEY }}
-        
+        ssh-add ~/.ssh/id_ed25519
+
         # Skip host verification for the first time
         mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
         ssh-keyscan -t ed25519 ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
