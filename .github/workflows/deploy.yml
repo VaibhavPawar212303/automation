@@ -3,7 +3,7 @@ name: Deploy to GCP VM
 on:
   push:
     branches:
-      - main  # Trigger the workflow when changes are pushed to the main branch
+      - main
 
 jobs:
   deploy:
@@ -14,36 +14,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Google Cloud SDK
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
-
-      # Step 3: Authenticate with Google Cloud
+      # Step 2: Authenticate with Google Cloud
       - name: Authenticate with Google Cloud
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          echo "Authenticating with Google Cloud..."
-          gcloud auth activate-service-account --key-file="${{ secrets.GCP_SA_KEY }}"
-          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+          echo "${{ secrets.GCP_SA_KEY }}" > sa-key.json
+          gcloud auth activate-service-account --key-file=sa-key.json
+          gcloud config set project YOUR_PROJECT_ID
 
-      # Step 4: Deploy application using gcloud compute ssh
-      - name: Deploy to GCP VM
+      # Step 3: Deploy to GCP VM
+      - name: Deploy application
         run: |
-          echo "Connecting to GCP VM and deploying the application..."
-          gcloud compute ssh pawarvaibhav.vppv@projects/test-automation-445606/zones/us-central1-a/instances/instance-20241228-073715 <<EOF
-          set -e
-          echo "Navigating to application directory..."
-          cd /path/to/your/repo || { echo "Directory does not exist. Exiting."; exit 1; }
+          echo "Connecting to GCP VM..."
+          gcloud compute ssh pawarvaibhav.vppv@YOUR_INSTANCE_NAME \
+            --zone=YOUR_INSTANCE_ZONE \
+            --command="cd /path/to/your/repo && \
+                       git pull origin main && \
+                       docker-compose down && \
+                       docker-compose up -d --build"
 
-          echo "Pulling latest changes from Git..."
-          git pull origin main || { echo "Git pull failed. Exiting."; exit 1; }
-
-          echo "Rebuilding Docker containers..."
-          docker-compose down || { echo "Failed to stop Docker containers."; }
-          docker-compose up -d --build || { echo "Docker rebuild failed. Exiting."; exit 1; }
-
-          echo "Deployment complete!"
-          EOF
+      # Step 4: Clean up
+      - name: Clean up
+        run: |
+          rm -f sa-key.json
