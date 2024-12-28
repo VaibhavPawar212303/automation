@@ -21,4 +21,4 @@ jobs:
 
     - name: Test SSH Connection
       run: |
-        ssh -o StrictHostKeyChecking=no pawarvaibhav.vppv@GCP_VM_IP "echo 'Connected to VM successfully!'"
+        ssh -o StrictHostKeyChecking=no pawarvaibhav.vppv@${{ secrets.GCP_VM_IP }} "echo 'Connected to VM successfully!'"
