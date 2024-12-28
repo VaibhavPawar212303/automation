@@ -22,17 +22,23 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      # Step 3: Set the account explicitly (in case the default is not set)
-      - name: Set GCP account
+      # Step 3: Authenticate and set the active account
+      - name: Authenticate and configure Google Cloud
         run: |
-          echo "Setting the active Google Cloud account..."
-          gcloud config set account "${{ secrets.GCP_SA_EMAIL }}"
+          echo "Authenticating with the service account..."
+          echo "${{ secrets.GCP_SA_KEY }}" > gcp-key.json
+          gcloud auth activate-service-account --key-file=gcp-key.json
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+          gcloud config set account ${{ secrets.GCP_SA_EMAIL }}
 
-      # Step 4: Deploy application using gcloud compute ssh
+      # Step 4: Deploy to GCP VM
       - name: Deploy to GCP VM
         run: |
           echo "Connecting to GCP VM and deploying the application..."
-          gcloud compute ssh pawarvaibhav.vppv@projects/test-automation-445606/zones/us-central1-a/instances/instance-20241228-073715 -- 'bash -s' <<EOF
+          gcloud compute ssh pawarvaibhav.vppv@instance-20241228-073715 \
+            --zone=us-central1-a \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --tunnel-through-iap -- 'bash -s' <<EOF
           set -e
           echo "Navigating to application directory..."
           cd /path/to/your/repo || { echo "Directory does not exist. Exiting."; exit 1; }
