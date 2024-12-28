@@ -13,19 +13,22 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Set up SSH Key and Start Agent
+    - name: Set up SSH Key
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        
         # Start the SSH agent
-        eval "$(ssh-agent -s)"
-        echo "${{ secrets.SSH_PASSPHRASE }}" | ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
-
-        # Add the VM to known hosts
-        ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
+        eval $(ssh-agent -s)
+        
+        # Add the private key to the agent
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" | ssh-add - <<< ${{ secrets.SSH_PRIVATE_KEY }}
+        
+        # Skip host verification for the first time
+        mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
+        ssh-keyscan -t ed25519 ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
     - name: Test SSH Connection
       run: |
-        ssh pawarvaibhav.vppv@${{ secrets.GCP_VM_IP }} "echo 'Connected to VM successfully!'"
+        ssh -o StrictHostKeyChecking=no pawarvaibhav.vppv@${{ secrets.GCP_VM_IP }} "echo 'Connected to VM successfully!'"
