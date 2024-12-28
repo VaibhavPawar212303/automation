@@ -10,24 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Set up SSH Key
-      run: |
-        mkdir -p ~/.ssh
-        # Add the private key from secrets into the ~/.ssh/id_ed25519 file
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
+      - name: Set up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
 
-        # Start the SSH agent and add the private key
-        eval $(ssh-agent -s)
-        ssh-add ~/.ssh/id_ed25519
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/id_ed25519
 
-        # Skip host verification for the first time
-        mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
-        ssh-keyscan -t ed25519 ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
+          # Skip host verification for the first run
+          ssh-keyscan -t ed25519 ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
-    - name: Test SSH Connection
-      run: |
-        ssh -o StrictHostKeyChecking=no pawarvaibhav.vppv@${{ secrets.GCP_VM_IP }} "echo 'Connected to VM successfully!'"
+      - name: Test SSH Connection
+        run: |
+          ssh -o StrictHostKeyChecking=no pawarvaibhav.vppv@${{ secrets.GCP_VM_IP }} "echo 'Connected to VM successfully!'"
