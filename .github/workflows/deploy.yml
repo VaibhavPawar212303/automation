@@ -26,29 +26,37 @@ jobs:
           echo "Adding GCP VM to known hosts..."
           ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
-      # Step 3: Deploy application on GCP VM
+      # Step 3: Test SSH Connection
+      - name: Test SSH Connection
+        env:
+          GCP_VM_IP: ${{ secrets.GCP_VM_IP }}
+        run: |
+          echo "Testing SSH connection..."
+          ssh -o StrictHostKeyChecking=no -i private_key.pem user@$GCP_VM_IP exit
+          echo "SSH connection successful."
+
+      # Step 4: Deploy application on GCP VM
       - name: Deploy to GCP VM
         env:
           GCP_VM_IP: ${{ secrets.GCP_VM_IP }}
         run: |
           echo "Starting deployment to GCP VM..."
-          ssh -o StrictHostKeyChecking=no -i private_key.pem user@$GCP_VM_IP <<EOF
+          ssh -t -o StrictHostKeyChecking=no -i private_key.pem user@$GCP_VM_IP <<EOF
           set -e
-
           echo "Navigating to application directory..."
-          cd /path/to/your/repo
+          cd /path/to/your/repo || { echo "Directory does not exist. Exiting."; exit 1; }
 
-          echo "Pulling latest changes..."
-          git pull origin main
+          echo "Pulling latest changes from Git..."
+          git pull origin main || { echo "Git pull failed. Exiting."; exit 1; }
 
           echo "Rebuilding Docker containers..."
-          docker-compose down
-          docker-compose up -d --build
+          docker-compose down || { echo "Failed to stop Docker containers."; }
+          docker-compose up -d --build || { echo "Docker rebuild failed. Exiting."; exit 1; }
 
           echo "Deployment complete!"
           EOF
 
-      # Step 4: Clean up private key
+      # Step 5: Clean up private key
       - name: Clean up
         run: |
           echo "Removing temporary SSH private key..."
