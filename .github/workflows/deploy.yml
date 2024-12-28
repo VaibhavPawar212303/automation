@@ -22,18 +22,11 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      # Step 3: Authenticate with Google Cloud
-      - name: Authenticate with Google Cloud
-        run: |
-          echo "Authenticating with Google Cloud..."
-          gcloud auth activate-service-account --key-file="${{ secrets.GCP_SA_KEY }}"
-          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-
-      # Step 4: Deploy application using gcloud compute ssh
+      # Step 3: Deploy application using gcloud compute ssh
       - name: Deploy to GCP VM
         run: |
           echo "Connecting to GCP VM and deploying the application..."
-          gcloud compute ssh pawarvaibhav.vppv@projects/test-automation-445606/zones/us-central1-a/instances/instance-20241228-073715 <<EOF
+          gcloud compute ssh pawarvaibhav.vppv@projects/test-automation-445606/zones/us-central1-a/instances/instance-20241228-073715 -- 'bash -s' <<EOF
           set -e
           echo "Navigating to application directory..."
           cd /path/to/your/repo || { echo "Directory does not exist. Exiting."; exit 1; }
