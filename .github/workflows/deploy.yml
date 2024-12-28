@@ -14,34 +14,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up SSH access to the GCP VM
-      - name: Set up SSH
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          echo "Configuring SSH..."
-          mkdir -p ~/.ssh
-          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
-          echo "SSH setup completed."
+      # Step 2: Set up Google Cloud SDK
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
 
-      # Step 3: Test SSH Connection
-      - name: Test SSH Connection
-        env:
-          GCP_VM_IP: ${{ secrets.GCP_VM_IP }}
-        run: |
-          echo "Testing SSH connection..."
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 pawarvaibhav.vppv@$GCP_VM_IP exit
-          echo "SSH connection successful."
+      # Step 3: Test gcloud authentication
+      - name: Test gcloud authentication
+        run: gcloud auth list
 
-      # Step 4: Deploy application on GCP VM
+      # Step 4: Deploy application using gcloud compute ssh
       - name: Deploy to GCP VM
-        env:
-          GCP_VM_IP: ${{ secrets.GCP_VM_IP }}
         run: |
-          echo "Starting deployment to GCP VM..."
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 pawarvaibhav.vppv@$GCP_VM_IP <<EOF
+          echo "Connecting to GCP VM and deploying the application..."
+          gcloud compute ssh pawarvaibhav.vppv@projects/test-automation-445606/zones/us-central1-a/instances/instance-20241228-073715 <<EOF
           set -e
           echo "Navigating to application directory..."
           cd /path/to/your/repo || { echo "Directory does not exist. Exiting."; exit 1; }
@@ -55,9 +44,3 @@ jobs:
 
           echo "Deployment complete!"
           EOF
-
-      # Step 5: Clean up private key
-      - name: Clean up
-        run: |
-          echo "Removing temporary SSH private key..."
-          rm -f ~/.ssh/id_ed25519
