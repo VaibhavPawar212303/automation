@@ -32,7 +32,7 @@ jobs:
           GCP_VM_IP: ${{ secrets.GCP_VM_IP }}
         run: |
           echo "Testing SSH connection..."
-          ssh -o StrictHostKeyChecking=no -i private_key.pem user@$GCP_VM_IP exit
+          ssh -o StrictHostKeyChecking=no -i private_key.pem pawarvaibhav.vppv@$GCP_VM_IP exit
           echo "SSH connection successful."
 
       # Step 4: Deploy application on GCP VM
@@ -41,7 +41,7 @@ jobs:
           GCP_VM_IP: ${{ secrets.GCP_VM_IP }}
         run: |
           echo "Starting deployment to GCP VM..."
-          ssh -t -o StrictHostKeyChecking=no -i private_key.pem user@$GCP_VM_IP <<EOF
+          ssh -t -o StrictHostKeyChecking=no -i private_key.pem pawarvaibhav.vppv@$GCP_VM_IP <<EOF
           set -e
           echo "Navigating to application directory..."
           cd /path/to/your/repo || { echo "Directory does not exist. Exiting."; exit 1; }
