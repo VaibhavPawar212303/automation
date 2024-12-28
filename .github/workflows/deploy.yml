@@ -22,7 +22,13 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      # Step 3: Deploy application using gcloud compute ssh
+      # Step 3: Set the account explicitly (in case the default is not set)
+      - name: Set GCP account
+        run: |
+          echo "Setting the active Google Cloud account..."
+          gcloud config set account "${{ secrets.GCP_SA_EMAIL }}"
+
+      # Step 4: Deploy application using gcloud compute ssh
       - name: Deploy to GCP VM
         run: |
           echo "Connecting to GCP VM and deploying the application..."
