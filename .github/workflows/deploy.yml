@@ -35,3 +35,9 @@ jobs:
 
     - name: Verify Authentication
       run: gcloud compute instances list
+
+    - name: Access the GCP Instance
+      run: |
+        gcloud compute ssh instance-20241229-124431 \
+          --zone us-central1-a \
+          --command "echo 'Successfully connected to instance'"
