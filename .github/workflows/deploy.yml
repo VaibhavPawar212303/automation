@@ -1,4 +1,4 @@
-name: Connect to GCP VM
+name: Authenticate with GCP
 
 on:
   push:
@@ -6,13 +6,13 @@ on:
       - main
 
 jobs:
-  connect-vm:
+  gcloud-auth:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up gcloud CLI
+    - name: Install gcloud CLI
       run: |
         sudo apt-get update
         sudo apt-get install -y apt-transport-https ca-certificates gnupg
@@ -20,15 +20,14 @@ jobs:
         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
         sudo apt-get update && sudo apt-get install -y google-cloud-cli
 
-    - name: Authenticate gcloud
+    - name: Authenticate to GCP
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
       run: |
-        echo "${{ secrets.GCP_SA_KEY }}" > gcloud-key.json
+        echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcloud-key.json
         gcloud auth activate-service-account --key-file=gcloud-key.json
         gcloud config set project test-automation-445606
         gcloud config set compute/zone us-central1-a
 
-    - name: Test SSH Connection
-      run: |
-        gcloud compute ssh "instance-20241229-124431" --command "echo 'Connected to VM successfully!'"
+    - name: Verify Authentication
+      run: gcloud compute instances list
