@@ -1,4 +1,4 @@
-name: Authenticate with GCP
+name: Authenticate with GCP and Update Instance
 
 on:
   push:
@@ -36,22 +36,15 @@ jobs:
     - name: Verify Authentication
       run: gcloud compute instances list
 
-    - name: Access the GCP Instance
+    - name: Update Instance with New Changes
       run: |
         gcloud compute ssh instance-20241229-124431 \
           --zone us-central1-a \
-          --command "echo 'Successfully connected to instance'"
-
-    - name: Access the git repo and update new channges
-      run: |
-        sudo su
-        cd automation
-        git pull 
-    
-    - name: Build Docker image and run it 
-      run: |
-        docker build -t client-end .
-        docker run -d client-end
-      
-    
-
+          --command "
+            cd automation/ \
+            && sudo git pull \
+            && sudo docker build -t client-end . \
+            && sudo docker stop client-end-container || true \
+            && sudo docker rm client-end-container || true \
+            && sudo docker run -d --name client-end-container client-end
+          "
