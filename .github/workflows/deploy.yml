@@ -14,13 +14,17 @@ jobs:
 
     - name: Set up gcloud CLI
       run: |
-        sudo apt-get update && sudo apt-get install -y google-cloud-sdk
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https ca-certificates gnupg
+        echo "deb https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+        curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+        sudo apt-get update && sudo apt-get install -y google-cloud-cli
 
     - name: Authenticate gcloud
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
       run: |
-        echo "${{ secrets.GCP_SA_KEY }}" > gcloud-key.json
+        echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcloud-key.json
         gcloud auth activate-service-account --key-file=gcloud-key.json
         gcloud config set project test-automation-445606
         gcloud config set compute/zone us-central1-a
