@@ -22,9 +22,9 @@ jobs:
 
     - name: Authenticate gcloud
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
       run: |
-        echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcloud-key.json
+        echo "${{ secrets.GCP_SA_KEY }}" > gcloud-key.json
         gcloud auth activate-service-account --key-file=gcloud-key.json
         gcloud config set project test-automation-445606
         gcloud config set compute/zone us-central1-a
