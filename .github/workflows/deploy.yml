@@ -39,7 +39,9 @@ jobs:
         gcloud compute ssh instance-20241229-124431 \
           --zone us-central1-a \
           --command "
-            sudo su -c 'cd automation/ && \
+            sudo su -c 'ls -l / && \
+            cd /automation/ && \
+            ls -l && \
             git pull && \
             docker build -t client-end . && \
             docker stop client-end-container || true && \
