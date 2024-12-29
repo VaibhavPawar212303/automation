@@ -8,9 +8,16 @@ on:
 jobs:
   gcloud-auth:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Set up Google Cloud Authentication
+      uses: 'google-github-actions/auth@v2'
+      with:
+        # Pass the service account JSON directly from GitHub Secrets
+        credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
 
     - name: Install gcloud CLI
       run: |
@@ -20,19 +27,8 @@ jobs:
         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
         sudo apt-get update && sudo apt-get install -y google-cloud-cli
 
-    - name: Authenticate to GCP
-      env:
-        GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+    - name: Configure gcloud CLI
       run: |
-        # Create the JSON file directly using printf
-        printf '%s' "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcloud-key.json
-
-        # Optional: Output the JSON for verification (remove in production)
-        cat gcloud-key.json
-
-        # Authenticate using the service account key file
-        gcloud auth activate-service-account --key-file=gcloud-key.json
-
         # Set GCP project and zone
         gcloud config set project test-automation-445606
         gcloud config set compute/zone us-central1-a
