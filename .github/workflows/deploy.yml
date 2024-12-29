@@ -25,6 +25,7 @@ jobs:
         GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
       run: |
         echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcloud-key.json
+        cat gcloud-key.json # Optional: Verify the JSON structure in logs (for debugging)
         gcloud auth activate-service-account --key-file=gcloud-key.json
         gcloud config set project test-automation-445606
         gcloud config set compute/zone us-central1-a
