@@ -7,8 +7,10 @@ jobs:
   connect-vm:
     runs-on: ubuntu-latest
     steps:
+    
     - name: Checkout Code
       uses: actions/checkout@v3
+    
     - name: Test SSH Connection
       run: |
         gcloud compute ssh --zone "us-central1-a" "instance-20241229-124431" --project "test-automation-445606"
