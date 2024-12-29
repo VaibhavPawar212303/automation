@@ -41,3 +41,17 @@ jobs:
         gcloud compute ssh instance-20241229-124431 \
           --zone us-central1-a \
           --command "echo 'Successfully connected to instance'"
+
+    - name: Access the git repo and update new channges
+      run: |
+        sudo su
+        cd automation
+        git pull 
+    
+    - name: Build Docker image and run it 
+      run: |
+        docker build -t client-end .
+        docker run -d client-end
+      
+    
+
